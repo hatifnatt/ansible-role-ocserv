@@ -1,0 +1,40 @@
+{% macro dump_braceted_params(data) %}
+    {%- if data is string -%}
+[{{ data }}]
+    {%- elif data is mapping -%}
+[{{ data | dictsort | map("join", "=") | map("replace", "True", "true") | map("replace", "False", "false") | join(",") }}]
+    {%- elif data is iterable and data is not string and data[0] is mapping -%}
+[{{ data | map("items") | map("first") | map("join", "=") | map("replace", "True", "true") | map("replace", "False", "false") | join(",") }}]
+    {%- elif data is iterable and data is not string -%}
+[{{ data | join(',') }}]
+    {%- endif -%}
+{% endmacro %}
+
+{% macro dump_config_adv(value, key='', depth=0) %}
+    {% set param_name = key | replace('_','-') if '_' in key else key %}
+    {# boolean check must be done first otherwise boolean values will be treated as a number #}
+    {% if value is boolean %}
+{{ param_name }} = {{ value | string | lower }}
+    {% elif value is string or value is number %}
+{{ param_name }} = {{ value }}
+    {% elif value is mapping %}
+        {# when depth is 0 we are working with ocserv_config dictionary #}
+        {% if depth == 0 %}
+            {% for k, v in value.items() %}
+{{ dump_config_adv(v, k, depth + 1 ) -}}
+            {% endfor %}
+        {# in other cases depth > 0 and we are working with one of the paramerts that support
+            additional options like acct, auth, #}
+        {% else %}
+            {% for k, v in value.items() %}
+{{ param_name }} = "{{ k }}{% if v %}{{ dump_braceted_params(v) }}{% endif %}"
+            {% endfor %}
+        {% endif %}
+    {# if value is a list it's a one of the string parameters that can be present multiple times
+        like dns, iroute, route etc. #}
+    {% elif value is iterable %}
+        {% for i in value %}
+{{ param_name }} = {{ i }}
+        {% endfor %}
+    {% endif %}
+{% endmacro %}

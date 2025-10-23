@@ -1,0 +1,15 @@
+---
+- name: OCServ | Set sysctl parameters
+  ansible.posix.sysctl:
+    sysctl_file: "{{ ocserv_sysctl_file }}"
+    name: "{{ sysctl.name }}"
+    value: "{{ sysctl.value }}"
+    sysctl_set: "{{ sysctl.sysctl_set | default(true) | bool }}"
+    state: "{{ sysctl.state | default('present') }}"
+    reload: "{{ sysctl.reload | default(true) | bool }}"
+  loop: "{{ ocserv_sysctl_entries | default([]) }}"
+  loop_control:
+    loop_var: sysctl
+    label: "{{ sysctl.name }}={{ sysctl.value }}"
+  when:
+    - ocserv_sysctl_manage | bool

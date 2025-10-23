@@ -1,0 +1,18 @@
+# Install main packages
+- name: OCServ | Generic | Install main packages
+  ansible.builtin.package:
+    name: "{{ ocserv_packages }}"
+    state: present
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify:
+    - OCServ | Restart service
+  when: ocserv_packages
+  register: ocserv_packages_changed
+
+# Install extra packages
+- name: OpenConnect | Generic | Install extra packages
+  ansible.builtin.package:
+    name: "{{ openconnect_extra_packages }}"
+    state: present
+  ignore_errors: "{{ ansible_check_mode }}"
+  when: openconnect_extra_packages

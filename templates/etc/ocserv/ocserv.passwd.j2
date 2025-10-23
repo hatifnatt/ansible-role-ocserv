@@ -1,0 +1,6 @@
+#jinja2: lstrip_blocks: True
+{% for user in ocserv_users | sort(attribute='name') %}
+{%  set g = user.get('groups', user.get('group', '*')) %}
+{%  set groups = g | join(',') if g is iterable and g is not string else g %}
+{{ user.name }}:{{ groups }}:{{ user.get('password', '!') }}
+{% endfor %}

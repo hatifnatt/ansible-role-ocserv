@@ -1,0 +1,30 @@
+- name: OCServ | Create helper scripts
+  ansible.builtin.template:
+    src: "{{ script.value.template | default('etc/ocserv/script.j2') }}"
+    dest: "{{ script.value.path }}"
+    owner: "{{ script.value.user | default('root') }}"
+    group: "{{ script.value.group | default('root') }}"
+    mode: "{{ script.value.mode | default('0755') }}"
+  loop: "{{ ocserv_scripts | dict2items }}"
+  loop_control:
+    loop_var: script
+    label: "{{ script.key }}, {{ script.value.path }}"
+  vars:
+    script_ensure: "{{ script.value.ensure | default('present') }}"
+  notify:
+    - OCServ | Restart service
+  when: script_ensure == "present"
+
+- name: OCServ | Remove helper scripts
+  ansible.builtin.file:
+    path: "{{ script.value.path }}"
+    state: absent
+  loop: "{{ ocserv_scripts | dict2items }}"
+  loop_control:
+    loop_var: script
+    label: "{{ script.key }}, {{ script.value.path }}"
+  vars:
+    script_ensure: "{{ script.value.ensure | default('present') }}"
+  notify:
+    - OCServ | Restart service
+  when: script_ensure == "absent"

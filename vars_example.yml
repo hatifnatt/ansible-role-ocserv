@@ -1,0 +1,202 @@
+---
+
+ocserv_packages:
+  - ocserv
+
+# do not install recommended packages like dnsmask and many more
+# works on debian like systems with apt package manager
+ocserv_package_install_recommends: false
+
+ocserv_debug: false
+
+ocserv_extra_packages: []
+
+ocserv_service_name: ocserv
+ocserv_service_state: started
+ocserv_service_enabled: true
+
+ocserv_config_dir: /etc/ocserv
+ocserv_config_dir_user: root
+ocserv_config_dir_group: root
+ocserv_config_dir_mode: "0755"
+
+ocserv_ssl_dir: /etc/ocserv/ssl
+# user and group also will be used for a key and cert files
+ocserv_ssl_dir_user: root
+ocserv_ssl_dir_group: root
+ocserv_ssl_dir_mode: "0644"
+
+# how to get certificate checksumm to use with openconnect `--servercert` parameter
+# https://gitlab.com/openconnect/openconnect/-/issues/799#note_2416602038
+
+ocserv_ssl_key_file: "{{ ocserv_ssl_dir }}/ocserv.key"
+# ocserv_ssl_key_content: |
+#   -----BEGIN RSA PRIVATE KEY-----
+#   MIIEog...
+# ocserv_ssl_key_src: path/to/file.key
+
+ocserv_ssl_cert_file: "{{ ocserv_ssl_dir }}/ocserv.crt"
+# ocserv_ssl_cert_content: |
+#   -----BEGIN CERTIFICATE-----
+#   MIIDAz...
+# ocserv_ssl_cert_src: path/to/file.crt
+
+ocserv_ssl_ca_cert_file: "{{ ocserv_ssl_dir }}/ocserv-ca.crt"
+# ocserv_ssl_ca_cert_content: |
+#   -----BEGIN CERTIFICATE-----
+#   MIIDAz...
+# ocserv_ssl_ca_cert_src: path/to/file.crt
+
+# no scripts are defined by default
+# ocserv_scripts: {}
+
+# connect script for example
+ocserv_scripts:
+  connect-script:
+    ensure: present
+    # ensure: absent
+    template: etc/ocserv/script.j2
+    path: /etc/ocserv/connect-script.sh
+    user: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/usr/bin/env bash
+      echo "connect-script execued"
+
+ocserv_users: []
+
+# password must be already hashed with SHA256 with salt
+# it can be done with openssl
+# openssl passwd -5 -salt $(openssl rand -base64 16) your_password_here
+# ocserv_users:
+#   - name: bob
+#     group: foo
+#     password: "$5$07n4lJ4cxefYnx8L$xMY5ZhQmFKJ7UXUKk6.3.UkCSq1zI69kw2GX89iqqJ3"
+# if you want for some reason disable user without deleting it completely
+# you need to add exclamation mark (!) before password hash
+#   - name: alice
+#     groups:
+#       - zip
+#       - zap
+#     # user disabled
+#     password: "!$5$07n4lJ4cxefYnx8L$xMY5ZhQmFKJ7UXUKk6.3.UkCSq1zI69kw2GX89iqqJ3"
+
+ocserv_config_template: etc/ocserv/ocserv.conf.j2
+ocserv_config_file: "{{ ocserv_config_dir }}/ocserv.conf"
+ocserv_config_file_user: root
+ocserv_config_file_group: root
+ocserv_config_file_mode: "0644"
+# validate configuration file with
+# ocserv --test-config --config=%s
+ocserv_config_validate: true
+
+# backup configuration provided with a package during first role run
+ocserv_config_backup: true
+
+ocserv_config:
+  auth:
+    # there can be multiple authentication methods
+    # and its parameters can be defined in different ways
+    certificate: ''
+    plain: "passwd={{ ocserv_passwd_file }}"
+    pam:
+      - gid-min=1000
+    gssapi:
+      keytab: /etc/key.tab
+      require-local-user-map: true
+      tgt-freshness-time: 900
+    radius:
+      - config: /etc/radiusclient/radiusclient.conf
+      - groupconfig: true
+      - nas-identifier: name
+  acct:
+    radius:
+      config: /etc/radiusclient/radiusclient.conf
+  select-group:
+    group2: My special group
+  tcp-port: 443
+  udp-port: 443
+  run-as-user: ocserv
+  run-as-group: ocserv
+  server-cert: "{{ ocserv_ssl_cert_file }}"
+  server-key: "{{ ocserv_ssl_key_file }}"
+  ca-cert: "{{ ocserv_ssl_ca_cert_file }}"
+  # socket-file: /run/ocserv-socket
+  # when running in chroot simpe file name is prefered
+  socket-file: ocserv-socket
+  chroot-dir: /var/lib/ocserv
+  isolate-workers: true
+  max-clients: 16
+  max-same-clients: 2
+  rate-limit-ms: 100
+  server-stats-reset-time: 604800
+  keepalive: 32400
+  dpd: 90
+  mobile-dpd: 1800
+  switch-to-tcp-timeout: 25
+  try-mtu-discovery: false
+  cert-user-oid: 0.9.2342.19200300.100.1.1
+  tls-priorities: "NORMAL:%SERVER_PRECEDENCE:%COMPAT:-VERS-SSL3.0:-VERS-TLS1.0:-VERS-TLS1.1:-VERS-TLS1.3"
+  auth-timeout: 240
+  min-reauth-time: 300
+  max-ban-score: 80
+  ban-reset-time: 1200
+  cookie-timeout: 300
+  deny-roaming: false
+  rekey-time: 172800
+  rekey-method: ssl
+  connect-script: "{{ ocserv_scripts['connect-script']['path'] }}"
+  use-occtl: true
+  # in debian pid-file option is set via command line and defining it again
+  # in the configuration file will create a lot of noise in the logs like
+  # note: skipping 'pid-file' config option
+  # pid-file: /run/ocserv.pid
+  log-level: 1
+  device: vpns
+  predictable-ips: true
+  ipv4-network: 192.168.240.0
+  ipv4-netmask: 255.255.255.0
+  dns:
+    - 1.1.1.1
+    - 8.8.8.8
+  ping-leases: false
+  # route:
+  #   - 10.4.0.0/255.255.0.0
+  #   - 172.24.0.0/255.255.192.0
+  cisco-client-compat: true
+  dtls-legacy: true
+  client-bypass-protocol: false
+  vhosts:
+    www.example.tld:
+      auth:
+        pam:
+          - gid-min: 1000
+      log-level: 2
+      device: vpns
+      ipv4-network: 172.24.126.0
+      ipv4-netmask: 255.255.255.0
+
+ocserv_passwd_template: etc/ocserv/ocserv.passwd.j2
+ocserv_passwd_file: "{{ ocserv_config_dir }}/ocserv.passwd"
+ocserv_passwd_file_user: root
+ocserv_passwd_file_group: root
+ocserv_passwd_file_mode: "0600"
+
+ocserv_sysctl_manage: true
+ocserv_sysctl_file: /etc/sysctl.d/90-ocserv.conf
+# you can add additional sysctl parameters but to preserve default parameters defined below
+# you need to copy them to your vars file
+# in other words list from defaults will be overridden by list from your playbook vars or vars file
+ocserv_sysctl_entries:
+  # Enable packet forwarding for IPv4
+  - name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: true
+    state: present
+    reload: true
+  # Turn on Source Address Verification in all interfaces to prevent some spoofing attacks
+  - name: net.ipv4.conf.all.rp_filter
+    value: 1
+  - name: net.ipv4.conf.default.rp_filter
+    value: 1

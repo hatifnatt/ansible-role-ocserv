@@ -1,0 +1,117 @@
+---
+- name: OCServ | Create directory for SSL certificate
+  ansible.builtin.file:
+    path: "{{ ocserv_ssl_dir }}"
+    state: directory
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: "{{ ocserv_ssl_dir_mode }}"
+
+- name: OCServ | Check SSL key content provided
+  ansible.builtin.assert:
+    that:
+      - ocserv_ssl_key_content is defined and ocserv_ssl_key_content
+        or ocserv_ssl_key_src is defined and ocserv_ssl_key_src
+    fail_msg: >-
+      SSL key content or source file is not provided, can't proceed:
+      ocserv_ssl_key_content length = {{ ocserv_ssl_key_content | default('') | length }},
+      ocserv_ssl_key_src = '{{ ocserv_ssl_key_src | default('') }}'
+    success_msg: "SSL key will be created from provided data"
+
+# Create SSL key file from provided content
+- name: OCServ | Create SSL private key file from provided content
+  ansible.builtin.copy:
+    content: "{{ ocserv_ssl_key_content }}"
+    dest: "{{ ocserv_ssl_key_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0600'
+  no_log: true
+  notify: OCServ | Restart service
+  when:
+    - ocserv_ssl_key_content is defined and ocserv_ssl_key_content
+
+- name: OCServ | Create SSL private key from source file
+  ansible.builtin.copy:
+    src: "{{ ocserv_ssl_key_src }}"
+    dest: "{{ ocserv_ssl_key_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0600'
+  no_log: true
+  notify: OCServ | Restart service
+  when:
+    - not (ocserv_ssl_key_content is defined and ocserv_ssl_key_content)
+    - ocserv_ssl_key_src is defined and ocserv_ssl_key_src
+
+# Create SSL certificate file from provided content
+- name: OCServ | Check SSL cert content provided
+  ansible.builtin.assert:
+    that:
+      - ocserv_ssl_cert_content is defined and ocserv_ssl_cert_content
+        or ocserv_ssl_cert_src is defined and ocserv_ssl_cert_src
+    fail_msg: >-
+      SSL certificate content is not provided, can't proceed:
+      ocserv_ssl_cert_content length = {{ ocserv_ssl_cert_content | default('') | length }},
+      ocserv_ssl_cert_src = '{{ ocserv_ssl_cert_src | default('') }}'
+    success_msg: "SSL certificate will be created from provided data"
+
+- name: OCServ | Create SSL certificate file from provided content
+  ansible.builtin.copy:
+    content: "{{ ocserv_ssl_cert_content }}"
+    dest: "{{ ocserv_ssl_cert_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0644'
+  notify: OCServ | Restart service
+  when:
+    - ocserv_ssl_cert_content is defined and ocserv_ssl_cert_content
+
+- name: OCServ | Create SSL certificate from source file
+  ansible.builtin.copy:
+    content: "{{ ocserv_ssl_cert_src }}"
+    dest: "{{ ocserv_ssl_cert_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0644'
+  notify: OCServ | Restart service
+  when:
+    - not (ocserv_ssl_cert_content is defined and ocserv_ssl_cert_content)
+    - ocserv_ssl_cert_src is defined and ocserv_ssl_cert_src
+
+# Create SSL CA certificate file from provided content
+- name: OCServ | Check SSL CA cert content provided
+  ansible.builtin.assert:
+    that:
+      - ocserv_ssl_ca_cert_content is defined and ocserv_ssl_ca_cert_content
+        or ocserv_ssl_ca_cert_src is defined and ocserv_ssl_ca_cert_src
+    fail_msg: >-
+      SSL certificate content is not provided, can't proceed:
+      ocserv_ssl_ca_cert_content length = {{ ocserv_ssl_ca_cert_content | default('') | length }},
+      ocserv_ssl_ca_cert_src = '{{ ocserv_ssl_ca_cert_src | default('') }}'
+    success_msg: "SSL certificate will be created from provided data"
+
+- name: OCServ | Create SSL CA certificate file from provided content
+  ansible.builtin.copy:
+    content: "{{ ocserv_ssl_ca_cert_content }}"
+    dest: "{{ ocserv_ssl_ca_cert_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0644'
+  notify: OCServ | Restart service
+  when:
+    - ocserv_ssl_ca_cert_content is defined and ocserv_ssl_ca_cert_content
+
+- name: OCServ | Create SSL CA certificate from source file
+  ansible.builtin.copy:
+    content: "{{ ocserv_ssl_ca_cert_src }}"
+    dest: "{{ ocserv_ssl_ca_cert_file }}"
+    owner: "{{ ocserv_ssl_dir_user }}"
+    group: "{{ ocserv_ssl_dir_group }}"
+    mode: '0644'
+  notify: OCServ | Restart service
+  when:
+    - not (ocserv_ssl_ca_cert_content is defined and ocserv_ssl_ca_cert_content)
+    - ocserv_ssl_ca_cert_src is defined and ocserv_ssl_ca_cert_src
+
+# TODO: Add feature to create self signed certificate

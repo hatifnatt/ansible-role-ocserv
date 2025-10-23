@@ -1,0 +1,57 @@
+---
+# Backup "original" configuration file provided by packages
+# Backup will be performed only once, original config will be saved with '.example' extension
+- name: OCServ | Backup configuration files
+  ansible.builtin.copy:
+    src: "{{ ocserv_config_file }}"
+    dest: "{{ ocserv_config_file }}.example"
+    remote_src: true
+    mode: preserve
+    force: false
+  when: ocserv_config_backup
+
+- name: OCServ | Merge ocserv_config with defaults
+  ansible.builtin.set_fact:
+    ocserv_config: "{{ __ocserv_config | combine(ocserv_config | default({}), recursive=True) }}"
+
+- name: OCServ | Print ocserv_config
+  ansible.builtin.debug:
+    var: ocserv_config
+  when:
+    - ocserv_debug | bool
+
+# https://ocserv.openconnect-vpn.net/ocserv.8.html
+- name: OCServ | Manage main configuration file
+  ansible.builtin.template:
+    src: "{{ ocserv_config_template }}"
+    dest: "{{ ocserv_config_file }}"
+    owner: "{{ ocserv_config_file_user }}"
+    group: "{{ ocserv_config_file_group }}"
+    mode: "{{ ocserv_config_file_mode }}"
+    validate: |
+      {{ 'ocserv --test-config --config=%s' if ocserv_config_validate | bool else 'true %s' }}
+  notify:
+    - OCServ | Restart service
+
+- name: OCServ | Manage passwd file for plain auth
+  ansible.builtin.template:
+    src: "{{ ocserv_passwd_template }}"
+    dest: "{{ ocserv_passwd_file }}"
+    owner: "{{ ocserv_passwd_file_user }}"
+    group: "{{ ocserv_passwd_file_group }}"
+    mode: "{{ ocserv_passwd_file_mode }}"
+  when:
+    - ocserv_users is defined and ocserv_users
+
+- name: OCServ | No users defined for plain auth
+  ansible.builtin.debug:
+    msg: "ocserv_users variable is not defined or empty - no users will be created"
+  when:
+    - ocserv_users is not defined
+      or not ocserv_users
+
+- name: OCServ | Manage system service
+  ansible.builtin.service:
+    name: "{{ ocserv_service_name }}"
+    state: "{{ ocserv_service_state }}"
+    enabled: "{{ ocserv_service_enabled | bool }}"

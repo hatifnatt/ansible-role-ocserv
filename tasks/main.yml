@@ -1,0 +1,140 @@
+---
+
+# Install packages
+- name: OCServ | Include install tasks
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}/install.yml"
+        - "{{ ansible_distribution | lower }}/install.yml"
+        - "{{ ansible_os_family | lower }}/install.yml"
+        - "install.yml"
+      paths:
+        - "tasks"
+      # fail if no files found
+      skip: false
+  args:
+    apply:
+      tags:
+        - install
+        - ocserv
+        - ocserv-install
+  tags:
+    - install
+    - ocserv
+    - ocserv-install
+
+# Update system sysctl parameters
+- name: OCServ | Include sysctl tasks
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}/sysctl.yml"
+        - "{{ ansible_distribution | lower }}/sysctl.yml"
+        - "{{ ansible_os_family | lower }}/sysctl.yml"
+        - "sysctl.yml"
+      paths:
+        - "tasks"
+      # fail if no files found
+      skip: false
+  args:
+    apply:
+      tags:
+        - sysctl
+        - ocserv
+        - ocserv-sysctl
+  tags:
+    - sysctl
+    - ocserv
+    - ocserv-sysctl
+
+- name: OCServ | Include SSL tasks
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}/ssl.yml"
+        - "{{ ansible_distribution | lower }}/ssl.yml"
+        - "{{ ansible_os_family | lower }}/ssl.yml"
+        - "ssl.yml"
+      paths:
+        - "tasks"
+      # fail if no files found
+      skip: false
+  args:
+    apply:
+      tags:
+        - config
+        - ssl
+        - ocserv
+        - ocserv-ssl
+        - ocserv-config
+  tags:
+    - config
+    - ssl
+    - ocserv
+    - ocserv-ssl
+    - ocserv-config
+
+- name: OCServ | Include scripts tasks
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}/scripts.yml"
+        - "{{ ansible_distribution | lower }}/scripts.yml"
+        - "{{ ansible_os_family | lower }}/scripts.yml"
+        - "scripts.yml"
+      paths:
+        - "tasks"
+      # fail if no files found
+      skip: false
+  args:
+    apply:
+      tags:
+        - config
+        - script
+        - scripts
+        - ocserv
+        - ocserv-script
+        - ocserv-scripts
+        - ocserv-config
+  tags:
+    - config
+    - script
+    - scripts
+    - ocserv
+    - ocserv-script
+    - ocserv-scripts
+    - ocserv-config
+
+# Create config
+# Start service
+- name: OCServ | Include config tasks
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}/config.yml"
+        - "{{ ansible_distribution | lower }}/config.yml"
+        - "{{ ansible_os_family | lower }}/config.yml"
+        - "config.yml"
+      paths:
+        - "tasks"
+      # fail if no files found
+      skip: false
+  args:
+    apply:
+      tags:
+        - config
+        - main-config
+        - ocserv
+        - ocserv-config
+  tags:
+    - config
+    - main-config
+    - ocserv
+    - ocserv-config
+

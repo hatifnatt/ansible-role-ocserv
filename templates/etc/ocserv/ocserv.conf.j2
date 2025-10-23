@@ -1,0 +1,15 @@
+#jinja2: lstrip_blocks: True
+{% from 'macro.j2' import dump_config, dump_config_adv with context %}
+{% if 'vhost' in ocserv_config %}
+    {% set vhosts = ocserv_config.pop('vhost') %}
+{% elif 'vhosts' in ocserv_config %}
+    {% set vhosts = ocserv_config.pop('vhosts') %}
+{% endif %}
+{{ dump_config_adv(ocserv_config) }}
+{# dump vhosts configurations #}
+{% if vhosts is defined %}
+    {% for vhost, vconf in vhosts| dictsort %}
+[vhost:{{ vhost }}]
+{{ dump_config_adv(vconf) }}
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,21 @@
+---
+# Install main packages
+# TODO Pin (hold) version?
+- name: OCServ | Debian | Install main packages
+  ansible.builtin.apt:
+    name: "{{ ocserv_packages }}"
+    state: present
+    install_recommends: "{{ ocserv_package_install_recommends }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify:
+    - OCServ | Restart service
+  when: ocserv_packages
+  register: ocserv_packages_changed
+
+# Install extra packages
+- name: OCServ | Debian | Install extra packages
+  ansible.builtin.apt:
+    name: "{{ ocserv_extra_packages }}"
+    state: present
+  ignore_errors: "{{ ansible_check_mode }}"
+  when: ocserv_extra_packages
