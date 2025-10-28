@@ -10,9 +10,9 @@
   register: ocserv_packages_changed
 
 # Install extra packages
-- name: OpenConnect | Generic | Install extra packages
+- name: OCServ | Generic | Install extra packages
   ansible.builtin.package:
-    name: "{{ openconnect_extra_packages }}"
+    name: "{{ ocserv_extra_packages }}"
     state: present
   ignore_errors: "{{ ansible_check_mode }}"
-  when: openconnect_extra_packages
+  when: ocserv_extra_packages
