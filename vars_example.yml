@@ -69,6 +69,11 @@ ocserv_users: []
 # password must be already hashed with SHA256 with salt
 # it can be done with openssl
 # openssl passwd -5 -salt $(openssl rand -base64 16) your_password_here
+# NB `openssl rand -base64 16` can give symbols which are not valid in salt i.e. '+', '='
+# less portable but reliable commands
+# openssl passwd -5 -salt $(tr -dc './0-9A-Za-z' < /dev/urandom | head -c 16) your_password_here
+# without using /dev/urandom
+# openssl passwd -5 -salt $(openssl rand -base64 32 | grep -o '[./0-9A-Za-z]' | tr -d '\n' | head -c 16) your_password_here
 # ocserv_users:
 #   - name: bob
 #     group: foo
