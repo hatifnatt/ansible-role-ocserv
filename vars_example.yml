@@ -24,7 +24,7 @@ ocserv_ssl_dir: /etc/ocserv/ssl
 # user and group also will be used for a key and cert files
 ocserv_ssl_dir_user: root
 ocserv_ssl_dir_group: root
-ocserv_ssl_dir_mode: "0644"
+ocserv_ssl_dir_mode: "0755"
 
 # how to get certificate checksumm to use with openconnect `--servercert` parameter
 # https://gitlab.com/openconnect/openconnect/-/issues/799#note_2416602038

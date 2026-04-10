@@ -23,7 +23,7 @@ ocserv_ssl_dir: /etc/ocserv/ssl
 # user and group also will be used for a key and cert files
 ocserv_ssl_dir_user: root
 ocserv_ssl_dir_group: root
-ocserv_ssl_dir_mode: "0644"
+ocserv_ssl_dir_mode: "0755"
 
 ocserv_ssl_key_file: "{{ ocserv_ssl_dir }}/ocserv.key"
 # ocserv_ssl_key_content: |
